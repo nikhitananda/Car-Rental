@@ -1,0 +1,171 @@
+#TABLES
+--Customer:
+create table Customer(Customer_ID number(10) primary key,
+Mobile_No number(10),Bill_No number(20) references
+BILL(Bill_No),MID number(20) references Member(MID),F_ID
+number(20) references Feedback(F_ID), D_No number(20) references
+Driver(D_No), Vehicle_ID varchar(20) references Car(Vehicle_ID),Coupon_ID NUMBER(10) REFERENCES Coupons(Coupon_ID));
+Insert into Customer values(77,1238765490,4,12,123,45,'pb23');
+Insert into Customer values(70,1234567890,6,13,124,46,'pb23');
+Insert into Customer values(71,9877856643,5,14,125,45,'pb26');
+Insert into Customer values(74,9754354676,8,15,126,48,'pb24');
+Insert into Customer values(79,9876765455,9,16,127,47,'pb28');
+Insert into Customer values(73,6879765535,7,17,128,49,'pb27');
+
+--Customer_Name:
+create table Customer_Name(Name_ID number(5) primary key,
+Customer_ID number(10) references Customer(Customer_ID),FirstName
+varchar(10),LastName varchar(20));
+Insert into Customer_Name values(2,77,'Khushi','Mittal');
+Insert into Customer_Name values(3,74,'Manmeet','Kaur');
+Insert into Customer_Name values(4,70,'Khushi','Attri');
+Insert into Customer_Name values(6,79,'Aditya','Goel');
+Insert into Customer_Name values(9,73,'Nikhita','Nanda');
+Insert into Customer_Name values(8,71,'Saarth','Nanda');
+
+
+--Member:
+create table Member(MID number(10) primary key,Discount
+number(2),Duration number(2));
+Insert into Member values(12,28,6);
+Insert into Member values(13,21,16);
+Insert into Member values(14,20,6);
+Insert into Member values(15,70,6);
+Insert into Member values(16,40,6);
+Insert into Member values(17,30,6);
+
+
+--BILL:
+create table BILL(Bill_No number(10) primary key,B_Date
+date,F_Amount number(10),RID number(5) references Rental(RID),Total_Amount NUMBER(10),Discount_Amount NUMBER(7));
+Insert into Bill values(4,to_date('27-Oct-2023'),256,67);
+Insert into Bill values(5,to_date('28-Nov-2023'),257,80);
+Insert into Bill values(6,to_date('29-Dec-2023'),258,20);
+Insert into Bill values(7,to_date('30-Jan-2023'),259,67);
+Insert into Bill values(8,to_date('20-Feb-2023'),260,30);
+Insert into Bill values(9,to_date('27-Mar-2023'),261,40);
+
+
+--Driver:
+create table Driver(D_No number(20) primary key);
+Insert into Driver values(45);
+Insert into Driver values(46);
+Insert into Driver values(47);
+Insert into Driver values(48);
+Insert into Driver values(49);
+Insert into Driver values(50);
+
+
+--Rental:
+create table Rental(RID number(5) primary key, Amount
+number(7),Dates date,Vehicle_ID varchar(20) references
+Car(Vehicle_ID),D_No number(20) references Driver(D_No),Return_Date DATE, Late_Fee NUMBER(7));
+Insert into Rental values (67,700,to_date('06-Nov-2023'),'pb23',45);
+Insert into Rental values(80,700,to_date('07-Apr-2023'),'pb24',46);
+Insert into Rental values(90,700,to_date('08-Mar-2023'),'pb25',47);
+Insert into Rental values(20,700,to_date('09-July-2023'),'pb26',48);
+Insert into Rental values(30,700,to_date('10-June-2023'),'pb27',49);
+Insert into Rental values(40,700,to_date('11-Dec-2023'),'pb28',50);
+
+
+--Car:
+create table Car(Vehicle_ID varchar(20) primary key,Rate
+number(3),License_No number(10),Owner_ID number(10) references
+Owner(Owner_ID),Type char(20));
+Insert into Car values('pb23',23,56,001,'SUV');
+Insert into Car values('pb24',24,67,002,'Hatchback');
+Insert into Car values('pb25',25,87,003,'MUV');
+Insert into Car values('pb26',26,91,004,'Sedan');
+Insert into Car values('pb27',27,90,005,'Coupe');
+Insert into Car values('pb28',28,10,006,'Minivan');
+
+
+--CustomerService:
+create table CustomerService(Emp_ID number(10) primary key,Mobile
+number(10),Name char(30),F_ID number(20) references
+Feedback(F_ID));
+Insert into CustomerService values(11,1234567890,'Nikhita',123);
+Insert into CustomerService values(12,1268749323,'Manmeet',124);
+Insert into CustomerService values(13,9846583524,'Khushi',125);
+Insert into CustomerService values(14,4952650374,'Aditiya',126);
+Insert into CustomerService values(15,8069573628,'Mehak',127);
+Insert into CustomerService values(16,5074463783,'Ria',128);
+
+
+--Individual:
+create table Individual(AadhaarNo number(16) primary
+key,Name varchar(20),Owner_ID number(10) references
+Owner(Owner_ID));
+Insert into Individual values(102103454,'saarth',001);
+Insert into Individual values(102103455,'mithil',002);
+Insert into Individual values(102103456,'harshit',003);
+Insert into Individual values(102103457,'gazal',004);
+Insert into Individual values(102103458,'manav',005);
+Insert into Individual values(102103459,'navam',006);
+
+
+--Owner:
+create table Owner(Owner_ID number(10) primary key);
+Insert into Owner values(001);
+Insert into Owner values(002);
+Insert into Owner values(003);
+Insert into Owner values(004);
+Insert into Owner values(005);
+Insert into Owner values(006);
+
+
+--Feedback:
+create table Feedback(F_ID number(20) primary key,Email
+char(30),Message char(100));
+Insert into Feedback values(123,'nnanda_be21@thapar.edu','awesome');
+Insert into Feedback values(124,'Manmeet_be21@thapar.edu','amazing');
+Insert into Feedback values(125,'khushi_be21@thapar.edu','good');
+Insert into Feedback values(126,'Aditya_be21@thapar.edu','bad');
+Insert into Feedback values(127,'mehak_be21@thapar.edu','good');
+Insert into Feedback values(128,'ria_be21@thapar.edu','good');
+
+#Create a trigger to calculate late fees:
+
+CREATE OR REPLACE TRIGGER Calculate_Late_Fee
+BEFORE INSERT OR UPDATE ON Rental
+FOR EACH ROW
+BEGIN
+    IF :NEW.Return_Date > :NEW.Dates THEN
+        :NEW.Late_Fee := (TO_DATE(:NEW.Return_Date) - TO_DATE(:NEW.Dates)) * :NEW.Amount * 0.1; -- Assuming 10% of the rental amount per day late
+    ELSE
+        :NEW.Late_Fee := 0;
+    END IF;
+END;
+/
+
+
+#Offering Discount Coupons
+CREATE TABLE Coupons (
+    Coupon_ID NUMBER(10) PRIMARY KEY,
+    Discount_Percentage NUMBER(3),
+    Valid_Till DATE
+);
+
+
+#Create a trigger to calculate the final bill amount considering discounts:
+CREATE OR REPLACE TRIGGER Calculate_Final_Bill
+BEFORE INSERT OR UPDATE ON BILL
+FOR EACH ROW
+DECLARE
+    coupon_discount NUMBER(3);
+    member_discount NUMBER(3) := 10; -- Default membership discount
+BEGIN
+    -- Fetch the coupon discount percentage
+    SELECT Discount_Percentage INTO coupon_discount 
+    FROM Coupons 
+    WHERE Coupon_ID = (SELECT Coupon_ID FROM Customer WHERE Customer.Customer_ID = :NEW.Customer_ID);
+
+    -- Calculate the discount amount
+    :NEW.Discount_Amount := (:NEW.F_Amount + :NEW.Late_Fee) * (coupon_discount + member_discount) / 100;
+
+    -- Calculate the total amount after discount
+    :NEW.Total_Amount := :NEW.F_Amount + :NEW.Late_Fee - :NEW.Discount_Amount;
+END;
+/
+
+
